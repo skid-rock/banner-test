@@ -1,0 +1,58 @@
+server {
+    listen 80;
+    listen [::]:80;
+    server_name localhost;
+
+    #access_log  /var/log/nginx/host.access.log  main;
+
+    #proxy_read_timeout 3600;
+    #proxy_connect_timeout 3600;
+    #proxy_send_timeout 3600;
+
+    error_page 404 /404.html;
+    location = /404.html {
+        root /usr/share/nginx/html;
+    }
+
+    # redirect server error pages to the static page /50x.html
+    #
+    error_page 500 502 503 504 /50x.html;
+    location = /50x.html {
+        root /usr/share/nginx/html;
+    }
+
+    # download files
+    #
+    location ~ ^/upload/.*\.xlsx$ {
+        root /app/public;
+        add_header Content-Disposition "attachment";
+        add_header Content-Type application/octet-stream;
+    }
+
+    #
+    #
+    location / {
+        try_files $uri $uri/ /index.php?$args;
+    }
+
+    # pass the PHP scripts to FastCGI server listening on app:9000
+    #
+    location ~ \.php$ {
+        root /app/public;
+        if (!-f $document_root$fastcgi_script_name) {
+            return 404;
+        }
+
+        fastcgi_pass app:9000;
+        fastcgi_index index.php;
+
+        fastcgi_split_path_info ^(.+\.php)(.*)$;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param PATH_INFO $fastcgi_path_info;
+
+        fastcgi_read_timeout 600;
+
+        include fastcgi_params;
+    }
+}
+

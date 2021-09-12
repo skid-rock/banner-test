@@ -1,0 +1,41 @@
+version: "3.8"
+
+services:
+  db:
+    image: mysql:8
+    environment:
+      - MYSQL_ROOT_PASSWORD
+      - MYSQL_DATABASE
+    volumes:
+      - ./data/sql:/var/lib/mysql
+      - ./docker/mysql:/docker-entrypoint-initdb.d
+    security_opt:
+      - seccomp:unconfined
+    ports:
+      - "3306:3306"
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+  app:
+    build:
+      context: docker/php
+      args:
+        - DEBUG_ENABLE=${DEBUG_ENABLE}
+    environment:
+      - XDEBUG_CONFIG
+      - XDEBUG_MODE
+      - PHP_IDE_CONFIG
+    volumes:
+      - ./app:/app
+  nginx:
+    image: nginx:alpine
+    ports:
+      - 80:80
+    environment:
+      - NGINX_PORT
+    volumes:
+      - ./app:/app
+      - ./docker/nginx:/etc/nginx/templates
+    depends_on:
+      - app

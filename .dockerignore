@@ -1,0 +1,8 @@
+# IDE files
+.idea
+
+# git dir
+.git
+
+# runtime volumes
+/data
