@@ -2,38 +2,15 @@
 
 namespace App;
 
-class Application extends BaseApplication
+class Application
 {
     const BR = "<br/>";
     const USER_VIEW_LIMIT = 2;
     const USER_ID_COOKIE = 'uid';
 
-    public function consoleDefault()
+    public function run()
     {
-        //$uid = md5(time());
-        //$usedId = 'b9fd8975a2d50949313f0f2a829f325a';
-
-        $this->consoleConsumer();
-    }
-
-    public function consoleConsumer()
-    {
-        $counters = new Counters(self::USER_VIEW_LIMIT);
-        $bannerCounters = $counters->getBannerCounterList();
-
-        $db = new Database();
-        $sql = '';
-        foreach ($bannerCounters as $key => $value) {
-            if ($value === "0") {
-                continue;
-            }
-
-            $id = substr($key, 4); //remove "BID:"
-            $sql .= "UPDATE banner SET view_count=view_count+$value WHERE id = $id;";
-            $counters->bannerCountDecBy($key, $value);
-        }
-
-        $db->execute($sql);
+        $this->routing();
     }
 
     protected function routing()

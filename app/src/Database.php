@@ -3,6 +3,7 @@
 namespace App;
 
 use PDO;
+use PDOException;
 
 class Database
 {
@@ -10,7 +11,16 @@ class Database
 
     public function __construct()
     {
-        $this->db = new PDO('mysql:host=db;dbname=banner', 'root', 'root');
+        $retries = 3;
+        while ($retries > 0) {
+            try {
+                $this->db = new PDO('mysql:host=db;dbname=banner', 'root', 'root');
+                $retries = 0;
+            } catch (PDOException $e) {
+                $retries--;
+                usleep(500); // Wait 0.5s between retries.
+            }
+        }
     }
 
     protected function getCollection($sql)

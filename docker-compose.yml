@@ -26,6 +26,18 @@ services:
       - PHP_IDE_CONFIG
     volumes:
       - ./app:/app
+    depends_on:
+      - db
+      - redis
+  app-consumer1:
+    build:
+      context: docker/php-cli
+    volumes:
+      - ./app:/app
+    depends_on:
+      - db
+      - redis
+      - app
   nginx:
     image: nginx:alpine
     ports:

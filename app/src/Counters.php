@@ -52,6 +52,10 @@ class Counters
     public function getBannerCounterList(): array
     {
         $bannerKeys = $this->redis->keys('BID:*');
+        if (empty($bannerKeys)) {
+            return [];
+        }
+
         $bannerValues = $this->redis->mget($bannerKeys);
 
         return array_combine($bannerKeys, $bannerValues);
