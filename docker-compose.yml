@@ -2,15 +2,13 @@ version: "3.8"
 
 services:
   db:
-    image: mysql:8
+    image: mysql:5.7
     environment:
       - MYSQL_ROOT_PASSWORD
       - MYSQL_DATABASE
     volumes:
       - ./data/sql:/var/lib/mysql
       - ./docker/mysql:/docker-entrypoint-initdb.d
-    security_opt:
-      - seccomp:unconfined
     ports:
       - "3306:3306"
   redis:
