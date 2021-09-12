@@ -8,7 +8,9 @@ create table banner
     total_views int default 0 not null,
     constraint banner_id_uindex
         unique (id)
-);
+)
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;
 
 alter table banner
     add primary key (id);
@@ -20,4 +22,6 @@ create table banner_user
     user_id    varchar(255)  not null,
     view_count int default 0 not null,
     primary key (banner_id, user_id)
-);
+)
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;

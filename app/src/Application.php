@@ -2,21 +2,38 @@
 
 namespace App;
 
-class Application
+class Application extends BaseApplication
 {
     const BR = "<br/>";
+    const USER_VIEW_LIMIT = 2;
+    const USER_ID_COOKIE = 'uid';
 
-    public function runConsole()
+    public function consoleDefault()
     {
         //$uid = md5(time());
-        $uid = 'b9fd8975a2d50949313f0f2a829f325a';
+        //$usedId = 'b9fd8975a2d50949313f0f2a829f325a';
 
-        $this->process($uid);
+        $this->consoleConsumer();
     }
 
-    public function run()
+    public function consoleConsumer()
     {
-        $this->routing();
+        $counters = new Counters(self::USER_VIEW_LIMIT);
+        $bannerCounters = $counters->getBannerCounterList();
+
+        $db = new Database();
+        $sql = '';
+        foreach ($bannerCounters as $key => $value) {
+            if ($value === "0") {
+                continue;
+            }
+
+            $id = substr($key, 4); //remove "BID:"
+            $sql .= "UPDATE banner SET view_count=view_count+$value WHERE id = $id;";
+            $counters->bannerCountDecBy($key, $value);
+        }
+
+        $db->execute($sql);
     }
 
     protected function routing()
@@ -29,35 +46,40 @@ class Application
     public function index()
     {
         // sets user id cookie
-        if (isset($_COOKIE['uid'])) {
-            $uid = $_COOKIE['uid'];
+        if (isset($_COOKIE[self::USER_ID_COOKIE])) {
+            $usedId = $_COOKIE[self::USER_ID_COOKIE];
         } else {
-            $uid = md5(time());
-            setcookie('uid', $uid);
+            $usedId = md5(time());
+            setcookie('uid', $usedId);
         }
 
         // response
-        echo "User_id: $uid" . self::BR;
+        echo "User ID: $usedId" . self::BR;
         echo "Url Banner List:" . self::BR;
 
-        $urls = $this->process($uid);
+        $urls = $this->process($usedId);
         foreach ($urls as $url) {
             echo $url . self::BR;
         }
     }
 
     // main domain logic
-    private function process($uid): array
+    private function process($usedId): array
     {
         $db = new Database();
+        $counters = new Counters(self::USER_VIEW_LIMIT);
 
-        $bannerList = $db->getBannerListByUser($uid);
+        $bannerListIds = $counters->getUserBannerList($usedId);
+        $bannerList = $db->getBannerListByUser($usedId, $bannerListIds);
+
         $response = [];
-        foreach ($bannerList as $id => $banner) {
+        foreach ($bannerList as $bannerId => $banner) {
             $response[] = $banner['url'];
-            $db->incrementUserBannerCounter($id, $uid);
-            $db->incrementBannerCounter($id);
+            $counters->userBannerCount($usedId, $bannerId); // user-banner counter
+            $counters->bannerCountInc("BID:$bannerId"); // banner counter
         }
+
+        $response[] = $counters->getUsedMemory();
 
         return $response;
     }

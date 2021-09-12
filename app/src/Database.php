@@ -25,7 +25,7 @@ class Database
         return $collection;
     }
 
-    protected function execute($sql)
+    public function execute($sql)
     {
         return $this->db->query($sql);
     }
@@ -68,15 +68,14 @@ class Database
         return $result;
     }
 
-    public function getBannerListByUser($usedId, $number = 3)
+    public function getBannerListByUser($usedId, string $bannerIdList, $bannersPerPage = 3)
     {
+        // In {$bannerIdList} "0" for terminate last comma
         $query = "SELECT b.*
 FROM banner b
-         LEFT JOIN banner_user bu on b.id = bu.banner_id AND bu.user_id = '$usedId'
-WHERE b.view_count < b.total_views
-  AND (bu.view_count < 2 OR bu.banner_id is NULL)
+WHERE b.view_count < b.total_views AND b.id NOT IN ({$bannerIdList}0)
 ORDER BY b.view_count * k
-LIMIT $number;";
+LIMIT $bannersPerPage;";
 
         return $this->getCollection($query);
     }
